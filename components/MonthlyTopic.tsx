@@ -84,7 +84,7 @@ export default function MonthlyTopic({
       </Reveal>
 
       <div className="mt-8 text-center">
-        <Button href={contactUrl}>Вступить в клуб</Button>
+        <Button href={contactUrl}>Вступить в сообщество</Button>
       </div>
     </section>
   );

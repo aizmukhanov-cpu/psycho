@@ -44,3 +44,6 @@ next-env.d.ts
 /data/
 /pybot/data/
 __pycache__/
+
+# архив для загрузки на хостинг (содержит токен)
+*.zip

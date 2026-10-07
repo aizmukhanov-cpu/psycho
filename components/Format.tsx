@@ -32,7 +32,7 @@ export default function Format({ contactUrl }: { contactUrl: string }) {
   return (
     <section id="format" className="bg-sand/70 py-20 sm:py-24">
       <div className="mx-auto max-w-4xl px-5">
-        <SectionHeading eyebrow="Формат" title="Как работает книжный клуб?" text="Каждый месяц — одна тема и несколько форматов материалов." />
+        <SectionHeading eyebrow="Формат" title="Как работает сообщество?" text="Каждый месяц — одна тема и несколько форматов материалов." />
 
         <Reveal className="mt-8 flex flex-wrap justify-center gap-3">
           {materials.map(({ icon: Icon, label }) => (
@@ -57,7 +57,7 @@ export default function Format({ contactUrl }: { contactUrl: string }) {
         </ul>
 
         <Reveal className="mt-14 text-center">
-          <Button href={contactUrl}>Вступить в клуб</Button>
+          <Button href={contactUrl}>Вступить в сообщество</Button>
         </Reveal>
       </div>
     </section>

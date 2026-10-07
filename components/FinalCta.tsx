@@ -9,7 +9,7 @@ export default function FinalCta({ contactUrl, contactLabel }: { contactUrl: str
         <Reveal>
           <div className="rounded-[2rem] bg-ink px-6 py-14 text-center text-white sm:px-12 sm:py-16">
             <h2 className="mx-auto max-w-2xl font-serif text-3xl font-bold leading-tight sm:text-4xl">
-              Присоединяйтесь к первой встрече клуба
+              Присоединяйтесь к первой встрече сообщества
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-lg text-white/70">
               Напишите нам — расскажем о ближайшей дате, теме и добавим в чат сообщества.

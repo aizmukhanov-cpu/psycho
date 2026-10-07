@@ -30,7 +30,7 @@ export default function Hero({ hero, venue, contactUrl }: { hero: SiteContent["h
 
         <div className="mt-10 flex flex-col items-center justify-center gap-3 animate-[fadeUp_0.7s_0.3s_ease-out_both] sm:flex-row">
           <Button href={contactUrl} className="w-full sm:w-auto">
-            Вступить в клуб
+            Вступить в сообщество
           </Button>
           <Button href="#format" variant="light" className="w-full sm:w-auto">
             Как это устроено

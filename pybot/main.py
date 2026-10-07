@@ -1,4 +1,4 @@
-"""Telegram-бот проверки оплаты книжного клуба (aiogram 3)."""
+"""Telegram-бот проверки оплаты книжного сообщества (aiogram 3)."""
 import asyncio
 import json
 import logging
@@ -36,7 +36,9 @@ def ids(raw: str) -> list[int]:
 
 
 TOKEN = need("BOT_TOKEN")
-ADMIN_IDS = ids(need("ADMIN_TG_IDS"))
+ADMIN_IDS = ids(need("ADMIN_TG_IDS"))  # команды /members, /grant
+# Кому приходят чеки и кто нажимает «Подтвердить» (по умолчанию — все админы)
+RECEIPT_IDS = ids(os.getenv("RECEIPT_TG_IDS", "")) or ADMIN_IDS
 CHAT_IDS = ids(need("GROUP_CHAT_IDS"))
 PAYMENT_DETAILS = need("PAYMENT_DETAILS").replace("\\n", "\n")
 CONTENT_URL = os.getenv("CONTENT_URL", "").strip()
@@ -154,7 +156,7 @@ async def cmd_start(m: Message) -> None:
     mem = members.get(str(m.from_user.id))
     status = f"\n\nВаша подписка активна до {fmt_date(mem['expires_at'])}. Можно продлить заранее." if is_active(mem) else ""
     await m.answer(
-        f"Здравствуйте! Это бот книжного клуба. Выберите тариф, чтобы вступить или продлить участие.{status}",
+        f"Здравствуйте! Это бот книжного сообщества по психологии. Выберите тариф, чтобы вступить или продлить участие.{status}",
         reply_markup=await plan_keyboard(),
     )
 
@@ -178,7 +180,7 @@ async def on_plan(cb: CallbackQuery) -> None:
 @router.message(F.photo | F.document, private)
 async def on_receipt(m: Message, bot: Bot) -> None:
     uid = m.from_user.id
-    if uid in ADMIN_IDS:
+    if uid in RECEIPT_IDS:
         return
     plan_key = store.db["pending_plan"].get(str(uid))
     if not plan_key:
@@ -208,7 +210,7 @@ async def on_receipt(m: Message, bot: Bot) -> None:
     kb = InlineKeyboardBuilder()
     kb.button(text="✅ Подтвердить", callback_data=f"ok:{req_id}")
     kb.button(text="❌ Отклонить", callback_data=f"no:{req_id}")
-    for admin in ADMIN_IDS:
+    for admin in RECEIPT_IDS:
         try:
             await bot.copy_message(admin, m.chat.id, m.message_id, caption=caption, reply_markup=kb.as_markup())
         except Exception as e:
@@ -221,7 +223,7 @@ async def on_receipt(m: Message, bot: Bot) -> None:
 
 @router.callback_query(F.data.regexp(r"^(ok|no):.+"))
 async def on_decision(cb: CallbackQuery, bot: Bot) -> None:
-    if cb.from_user.id not in ADMIN_IDS:
+    if cb.from_user.id not in RECEIPT_IDS:
         await cb.answer("Нет доступа")
         return
     action, req_id = cb.data.split(":", 1)
@@ -322,7 +324,7 @@ async def sweep(bot: Bot) -> None:
     for key, mem in list(members.items()):
         try:
             if mem["expires_at"] <= now:
-                if mem["user_id"] in ADMIN_IDS:
+                if mem["user_id"] in ADMIN_IDS or mem["user_id"] in RECEIPT_IDS:
                     continue
                 for chat_id in CHAT_IDS:
                     try:
@@ -331,7 +333,7 @@ async def sweep(bot: Bot) -> None:
                     except Exception as e:
                         log.error("Не удалось удалить %s из %s: %s", mem["user_id"], chat_id, e)
                 await safe_send(bot, mem["user_id"], "Срок вашего участия закончился. "
-                                "Чтобы вернуться в клуб, оформите продление: /start")
+                                "Чтобы вернуться в сообщество, оформите продление: /start")
                 del members[key]
                 store.save()
                 log.info("Удалён по окончании срока: %s (%s)", mem["name"], mem["user_id"])
@@ -345,7 +347,7 @@ async def sweep(bot: Bot) -> None:
             when = "завтра" if stage == 1 else f"через {stage} дня"
             await safe_send(
                 bot, mem["user_id"],
-                f"⏰ Ваше участие в клубе заканчивается {when} ({fmt_date(mem['expires_at'])}). "
+                f"⏰ Ваше участие в сообществе заканчивается {when} ({fmt_date(mem['expires_at'])}). "
                 "Чтобы остаться в чатах, продлите подписку:",
                 reply_markup=await plan_keyboard(),
             )

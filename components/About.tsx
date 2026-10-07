@@ -29,7 +29,7 @@ export default function About() {
   return (
     <section id="about" className="py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-5">
-        <SectionHeading eyebrow="О клубе" title="Зачем вам книжный клуб?" />
+        <SectionHeading eyebrow="О сообществе" title="Зачем вам книжное сообщество?" />
         <div className="mt-14 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
           {items.map(({ icon: Icon, title, text }, i) => (
             <Reveal key={title} delay={i * 100}>

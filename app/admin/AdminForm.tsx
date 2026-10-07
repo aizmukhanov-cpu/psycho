@@ -43,7 +43,7 @@ export default function AdminForm({ initial }: { initial: SiteContent }) {
   return (
     <main className="mx-auto max-w-3xl px-5 py-10 pb-32">
       <header className="flex items-center justify-between gap-4">
-        <h1 className="font-serif text-2xl font-bold sm:text-3xl">Админка клуба</h1>
+        <h1 className="font-serif text-2xl font-bold sm:text-3xl">Админка сообщества</h1>
         <div className="flex items-center gap-2">
           <a
             href="/"
@@ -64,7 +64,7 @@ export default function AdminForm({ initial }: { initial: SiteContent }) {
         <input type="hidden" name="payload" value={JSON.stringify(c)} />
 
         <Card title="Основное">
-          <Field label="Название клуба">
+          <Field label="Название сообщества">
             <input className={input} value={c.clubName} onChange={(e) => patch({ clubName: e.target.value })} />
           </Field>
           <Field label="Ссылка для вступления (Telegram)" hint="Только http:// или https://">
