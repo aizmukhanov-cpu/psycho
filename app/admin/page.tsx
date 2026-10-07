@@ -4,6 +4,9 @@ import { getContent } from "@/lib/content";
 import AdminForm from "./AdminForm";
 import LoginForm from "./LoginForm";
 
+// Всегда рендерим на запросе: иначе при сборке без переменных окружения закешируется «не настроена».
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Админка",
   robots: { index: false, follow: false },
