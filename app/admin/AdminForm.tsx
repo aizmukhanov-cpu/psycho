@@ -42,9 +42,15 @@ export default function AdminForm({ initial }: { initial: SiteContent }) {
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-10 pb-32">
-      <header className="flex items-center justify-between gap-4">
+      <header className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="font-serif text-2xl font-bold sm:text-3xl">Админка сообщества</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href="/admin/payments"
+            className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent"
+          >
+            Оплаты
+          </a>
           <a
             href="/"
             target="_blank"

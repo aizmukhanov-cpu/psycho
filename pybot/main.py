@@ -42,6 +42,9 @@ RECEIPT_IDS = ids(os.getenv("RECEIPT_TG_IDS", "")) or ADMIN_IDS
 CHAT_IDS = ids(need("GROUP_CHAT_IDS"))
 PAYMENT_DETAILS = need("PAYMENT_DETAILS").replace("\\n", "\n")
 CONTENT_URL = os.getenv("CONTENT_URL", "").strip()
+# Отправка данных на сайт (страница «Оплаты» в админке). Необязательно.
+SYNC_URL = os.getenv("SITE_SYNC_URL", "").strip()
+SYNC_SECRET = os.getenv("BOT_SYNC_SECRET", "").strip()
 if not ADMIN_IDS or not CHAT_IDS:
     raise SystemExit("ADMIN_TG_IDS и GROUP_CHAT_IDS должны содержать числовые id через запятую")
 
@@ -90,11 +93,66 @@ class Store:
         tmp = DATA_FILE.with_suffix(".tmp")
         tmp.write_text(json.dumps(self.db, ensure_ascii=False, indent=2), "utf-8")
         tmp.replace(DATA_FILE)
+        schedule_sync()
 
 
 store = Store()
 members: dict = store.db["members"]
 requests: dict = store.db["requests"]
+
+
+# ───────────── Отправка данных на сайт ─────────────
+
+_sync_handle: asyncio.TimerHandle | None = None
+_sync_tasks: set[asyncio.Task] = set()
+
+
+def build_snapshot() -> dict:
+    recent = sorted(requests.values(), key=lambda r: -r["created_at"])[:2000]
+    return {
+        "members": [
+            {"userId": m["user_id"], "name": m["name"], "username": m.get("username") or "",
+             "plan": m["plan"], "expiresAt": m["expires_at"]}
+            for m in members.values()
+        ],
+        "requests": [
+            {"id": r["id"], "userId": r["user_id"], "name": r["name"], "username": r.get("username") or "",
+             "plan": r["plan"], "amount": r["amount"], "status": r["status"], "createdAt": r["created_at"]}
+            for r in recent
+        ],
+    }
+
+
+async def push_snapshot() -> None:
+    if not (SYNC_URL and SYNC_SECRET):
+        return
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15)) as s:
+            async with s.post(SYNC_URL, json=build_snapshot(), headers={"Authorization": f"Bearer {SYNC_SECRET}"}) as r:
+                if r.status != 200:
+                    log.warning("Сайт не принял данные: HTTP %s", r.status)
+    except Exception as e:
+        log.warning("Не удалось отправить данные на сайт: %s", e)
+
+
+def schedule_sync() -> None:
+    """Отправить данные на сайт через 3 секунды после последнего изменения."""
+    global _sync_handle
+    if not (SYNC_URL and SYNC_SECRET):
+        return
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return
+    if _sync_handle:
+        _sync_handle.cancel()
+
+    def fire() -> None:
+        task = loop.create_task(push_snapshot())
+        _sync_tasks.add(task)
+        task.add_done_callback(_sync_tasks.discard)
+
+    _sync_handle = loop.call_later(3, fire)
 
 
 def is_active(m: dict | None) -> bool:
@@ -363,6 +421,7 @@ async def sweep_loop(bot: Bot) -> None:
             await sweep(bot)
         except Exception:
             log.exception("Ошибка sweep")
+        await push_snapshot()  # раз в час — на случай, если сайт был недоступен
         await asyncio.sleep(3600)
 
 
