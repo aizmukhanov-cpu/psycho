@@ -21,7 +21,7 @@ log = logging.getLogger("club-bot")
 
 DAY = 24 * 3600
 REMINDER_DAYS = [1, 3]  # предупреждения за 1 и за 3 дня (от самого срочного)
-PLAN_DAYS = {"month": 30, "quarter": 90}
+PLAN_DAYS = {"month": 45, "quarter": 105}  # срок доступа в днях: 1 мес = 45, 3 мес = 105
 
 
 def need(name: str) -> str:
